@@ -13,24 +13,16 @@ Thread-safe print utilities for Zig CLI applications with formatted printing to 
 
 ## Installation
 
-Add to your `build.zig.zon`:
+Add zprint to your project using `zig fetch`:
 
-```zig
-.dependencies = .{
-    .zprint = .{
-        .url = "https://github.com/sivel/zprint/archive/main.tar.gz",
-        .hash = "...", // zig will provide this
-    },
-},
+```bash
+zig fetch --save https://github.com/sivel/zprint/archive/master.tar.gz
 ```
 
-And in your `build.zig`:
+Then in your `build.zig`, add the dependency:
 
 ```zig
-const zprint = b.dependency("zprint", .{
-    .target = target,
-    .optimize = optimize,
-});
+const zprint = b.dependency("zprint", .{});
 exe.root_module.addImport("zprint", zprint.module("zprint"));
 ```
 
