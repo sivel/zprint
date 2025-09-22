@@ -1,0 +1,31 @@
+name: Test
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.15.1
+
+      - name: Run tests
+        run: zig build test
+
+      - name: Install zlint and run linting
+        run: |
+          curl -L "https://github.com/DonIsaac/zlint/releases/download/v0.7.9/zlint-linux-x86_64" -o zlint
+          echo "388c501bfb8ffe0e4ffb5ac633b71c1b74e4465a0d1cf8cb2f23f99b08299a29  zlint" | sha256sum -c
+          chmod +x zlint
+          git ls-files '*.zig' | ./zlint -S --format github
+
+      - name: Check formatting
+        run: zig fmt --check .

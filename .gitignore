@@ -1,0 +1,22 @@
+.zig-cache/
+zig-out/
+*.o
+
+# Vim
+# Swap files
+[._]*.s[a-v][a-z]
+!*.svg
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Session files
+Session.vim
+Sessionx.vim
+
+# Temporary and generated files
+.netrwhist
+*~
+tags
+[._]*.un~
