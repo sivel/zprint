@@ -16,7 +16,7 @@ Thread-safe print utilities for Zig CLI applications with formatted printing to 
 Add zprint to your project using `zig fetch`:
 
 ```bash
-zig fetch --save https://github.com/sivel/zprint/archive/master.tar.gz
+zig fetch --save https://github.com/sivel/zprint/archive/v0.1.0.tar.gz
 ```
 
 Then in your `build.zig`, add the dependency:
