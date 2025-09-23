@@ -51,29 +51,47 @@ zprint.debug.stderr("Debug message to stderr\n", .{});
 ### Custom writer configurations
 
 ```zig
-// Create your own writer config
-var custom_mutex = std.Thread.Mutex.Recursive.init;
-var custom_file_writer: std.fs.File.Writer = .{
-    .interface = std.fs.File.Writer.initInterface(&.{}),
-    .file = .stdout(),
-    .mode = .streaming,
-};
-const custom_config = zprint.WriterConfig{
-    .mutex = &custom_mutex,
-    .file_writer = &custom_file_writer,
-    .file = .stdout(),
+const std = @import("std");
+const zprint = @import("zprint");
+
+// Example: Custom log file writer
+var log_file = try std.fs.cwd().createFile("app.log", .{});
+defer log_file.close();
+
+var log_mutex = std.Thread.Mutex.Recursive.init;
+var log_buffer: [1024]u8 = undefined;
+var log_file_writer = log_file.writer(&log_buffer);
+
+const log_config = zprint.WriterConfig{
+    .mutex = &log_mutex,
+    .writer = &log_file_writer.interface,
 };
 
-try zprint.printConfig(custom_config, "Custom config: {s}\n", .{"works!"});
+// Use the custom config
+try zprint.print(log_config, "Log entry: {s}\n", .{"custom message"});
 ```
 
-### Generic writer printing
+### Testing with buffer capture
 
 ```zig
-// Use with any writer
-const writer = lockWriterConfig(custom_config, &buffer);
-defer unlockWriterConfig(custom_config);
-try zprint.print(writer, "Generic printing: {}\n", .{value});
+const std = @import("std");
+const zprint = @import("zprint");
+
+// Capture output to a buffer for testing
+var output_buffer: [512]u8 = undefined;
+var test_mutex = std.Thread.Mutex.Recursive.init;
+var test_writer = std.Io.Writer.fixed(output_buffer[0..]);
+
+const test_config = zprint.WriterConfig{
+    .mutex = &test_mutex,
+    .writer = &test_writer,
+};
+
+try zprint.print(test_config, "Test: {d}\n", .{42});
+
+// Verify output
+const written = output_buffer[0..test_writer.end];
+// written contains: "Test: 42\n"
 ```
 
 ## API Reference
@@ -82,19 +100,18 @@ try zprint.print(writer, "Generic printing: {}\n", .{value});
 
 - `stdout(fmt, args) !void` - Print to stdout with error handling
 - `stderr(fmt, args) !void` - Print to stderr with error handling
-- `printConfig(config, fmt, args) !void` - Print using custom writer config
-- `print(writer, fmt, args) !void` - Core function for any writer
+- `print(config, fmt, args) !void` - Core function using a WriterConfig (thread-safe, with flushing)
 
 ### Debug Functions (error-ignoring)
 
 - `debug.stdout(fmt, args) void` - Print to stdout, ignore errors
 - `debug.stderr(fmt, args) void` - Print to stderr, ignore errors
 
-### Writer Management
+### Types
 
-- `WriterConfig` - Configuration struct for custom writers
-- `lockWriterConfig(config, buffer) *Writer` - Lock a writer for use
-- `unlockWriterConfig(config) void` - Unlock a writer
+- `WriterConfig` - Configuration struct containing:
+  - `mutex: *std.Thread.Mutex.Recursive` - Mutex for thread safety
+  - `writer: *std.Io.Writer` - The writer interface to use
 
 ## Why zprint?
 
